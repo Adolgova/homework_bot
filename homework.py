@@ -93,14 +93,14 @@ def parse_status(homework):
         error_message = 'Ключ status отсутствует.'
         logger.error(error_message)
         raise exceptions.StatusError()
+    homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
     if homework_status not in HOMEWORK_VERDICTS:
         error_message = ('Не определен статус домашней работы!')
         logger.error(error_message)
         raise exceptions.StatusError()
     else:
-        verdict = HOMEWORK_VERDICTS[homework_status]
-        return f'Изменился статус проверки работы ". {verdict}'
+        return f'Изменился статус "{homework_name}".{HOMEWORK_VERDICTS}'
 
 
 def check_tokens():
