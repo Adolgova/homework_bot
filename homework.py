@@ -41,7 +41,6 @@ class TelegramBotHandler(logging.Handler):
         super().__init__()
         self.bot = bot
 
-
     def emit(self, record: logging.LogRecord):
         """Устанавливаем ограничение на отправку сообщений.
         Если сообщение уровня ERROR/CRITICAL уже было отправлено в телеграм,
@@ -55,76 +54,75 @@ class TelegramBotHandler(logging.Handler):
 
 
 def check_tokens():
-        """Проверяет доступность переменных окружения,
-        которые необходимы для работы программы. 
-        Если отсутствует хотя бы одна переменная окружения
-        — продолжать работу бота нет смысла.
-        """
-        if all((PRACTICUM_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_TOKEN)):
-            return bool
+    """Проверяет доступность переменных окружения,
+    которые необходимы для работы программы. 
+    Если отсутствует хотя бы одна переменная окружения
+    — продолжать работу бота нет смысла.
+    """
+    if all((PRACTICUM_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_TOKEN)):
+        return bool
 
 
 def send_message(bot, message):
-        """Отправляет сообщение в Telegram чат,
-        определяемый переменной окружения TELEGRAM_CHAT_ID.
-        Принимает на вход два параметра:
-        экземпляр класса Bot и строку с текстом сообщения.
-        """
-        try:
-            bot.send_message(
-                chat_id=token_dict["TELEGRAM_CHAT_ID"],
-                text=message
-            )
-            logging.info('Сообщение отправлено')
-        except Exception as error:
-            raise exceptions.ChatNotFoundException(error)
+    """Отправляет сообщение в Telegram чат,
+    определяемый переменной окружения TELEGRAM_CHAT_ID.
+    Принимает на вход два параметра:
+    экземпляр класса Bot и строку с текстом сообщения.
+    """
+    try:
+        bot.send_message(
+            chat_id=token_dict["TELEGRAM_CHAT_ID"],
+            text=message
+        )
+        logging.info('Сообщение отправлено')
+    except Exception as error:
+        raise exceptions.ChatNotFoundException(error)
 
 
 def get_api_answer(timestamp):
-        """Делает запрос к единственному эндпоинту API-сервиса. 
-        В качестве параметра в функцию передается временная метка.
-        В случае успешного запроса должна вернуть ответ API, 
-        приведя его из формата JSON к типам данных Python
-        """
-        timestamp = timestamp or int(time.time())
-        headers = {'Authorization': f'OAuth {token_dict["PRACTICUM_TOKEN"]}'}
-        params = {'from_date': timestamp}
-        response = requests.get(ENDPOINT, headers=headers, params=params)
-        if response.status_code != 200:
-            raise exceptions.EndPointIsNotAvailiable(response.status_code)
-        return response.json()
+    """Делает запрос к единственному эндпоинту API-сервиса. 
+    В качестве параметра в функцию передается временная метка.
+    В случае успешного запроса должна вернуть ответ API, 
+    приведя его из формата JSON к типам данных Python
+    """
+    timestamp = timestamp or int(time.time())
+    headers = {'Authorization': f'OAuth {token_dict["PRACTICUM_TOKEN"]}'}
+    params = {'from_date': timestamp}
+    response = requests.get(ENDPOINT, headers=headers, params=params)
+    if response.status_code != 200:
+        raise exceptions.EndPointIsNotAvailiable(response.status_code)
+    return response.json()
 
 
 def check_response(response):
-        """Проверяет ответ API на соответствие документации."""
-        if not isinstance(response, dict):
-            raise TypeError('переменная response не соответствует типу dict')
-        homeworks_list = response['homeworks']
-        if not isinstance(homeworks_list, list):
-            raise TypeError('домашки приходят не в виде списка')
-        return homeworks_list
+    """Проверяет ответ API на соответствие документации."""
+    if not isinstance(response, dict):
+        raise TypeError('переменная response не соответствует типу dict')
+    homeworks_list = response['homeworks']
+    if not isinstance(homeworks_list, list):
+        raise TypeError('домашки приходят не в виде списка')
+    return homeworks_list
 
 
 def parse_status(homework):
-        """Извлекает из информацию о статусе домашней работы."""
-        if not isinstance(homework, dict):
-            raise TypeError('переменная homework не соответствует типу dict')
-        homework_name = homework['homework_name']
-        homework_status = homework['status']
+    """Извлекает из информацию о статусе домашней работы."""
+    if not isinstance(homework, dict):
+        raise TypeError('переменная homework не соответствует типу dict')
+    homework_name = homework['homework_name']
+    homework_status = homework['status']
 
-        if homework_status not in (HOMEWORK_VERDICTS):
-            raise KeyError('Отсутствие ожидаемых ключей в ответе API')
-        verdict = HOMEWORK_VERDICTS.get(homework_status)
-        logging.info('Изменился статус проверки работы')
+    if homework_status not in (HOMEWORK_VERDICTS):
+        raise KeyError('Отсутствие ожидаемых ключей в ответе API')
+    verdict = HOMEWORK_VERDICTS.get(homework_status)
+    logging.info('Изменился статус проверки работы')
 
-        if homework_status == 'unknown':
-            raise TypeError('Недокументированный статус домашки')
-        return f'Изменился статус проверки работы "{homework_name}". {verdict}'
+    if homework_status == 'unknown':
+        raise TypeError('Недокументированный статус домашки')
+    return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
-
+# flake8: noqa: C901
 def main():
     """Основная логика работы программы."""
-
     _log_format = '%(asctime)s - %(levelname)s - %(message)s'
     logging.basicConfig(
         level=logging.INFO,
