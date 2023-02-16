@@ -56,31 +56,21 @@ def get_api_answer(timestamp):
 def check_response(response):
     """Проверяет ответ API на корректность."""
     if not isinstance(response, dict):
-        logger.error(
-            'Формат ответа API отличается от ожидаемого'
-        )
-        raise TypeError(
-            'Формат ответа API отличается от ожидаемого'
-        )
-    homeworks = response.get('homeworks')
-    if homeworks is None:
-        logger.error(
-            'Ответ API не содержит ключ homeworks'
-        )
-        raise KeyError(
-            'Ответ API не содержит ключ homeworks'
-        )
-    if isinstance(homeworks, list):
-        if homeworks == []:
-            logger.debug('В ответе нет новых статусов')
-    else:
-        logger.error(
-            'Тип значения домашнего задания отличается от ожидаемого'
-        )
-        raise TypeError(
-            'Тип значения домашнего задания отличается от ожидаемого'
-        )
-    return homeworks
+        error_message = 'Необрабатываемый ответ API.'
+        logger.error(error_message)
+        raise TypeError(error_message)
+    if 'homeworks' not in response:
+        error_message = 'Ошибка в ответе API, ключ homeworks не найден.'
+        logger.error(error_message)
+        raise KeyError(error_message)
+    if not isinstance(response['homeworks'], list):
+        error_message = 'Неверные данные.'
+        logger.error(error_message)
+        raise TypeError(error_message)
+    if not response['homeworks']:
+        logger.info('Словарь homeworks пуст.')
+        return {}
+    return response['homeworks'][0]
 
 
 def parse_status(homework):
@@ -100,7 +90,8 @@ def parse_status(homework):
         logger.error(error_message)
         raise exceptions.StatusError()
     else:
-        return f'Изменился статус "{homework_name}".{HOMEWORK_VERDICTS}'
+        verdict = HOMEWORK_VERDICTS[homework_status]
+        return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
 def check_tokens():
