@@ -48,22 +48,18 @@ def get_api_answer(timestamp):
             f'Ресурс {ENDPOINT} недоступен. '
             f'Код ответа: {response.status_code}.'
         )
-        logger.error(message)
-        raise exceptions.EndpointStatusError
+        raise exceptions.EndpointStatusError(message)
     return response.json()
 
 
 def check_response(response):
     """Проверяет ответ API на корректность."""
     if not isinstance(response, dict):
-        error_message = 'Необрабатываемый ответ API.'
-        raise TypeError(error_message)
+        raise TypeError('Необрабатываемый ответ API.')
     if 'homeworks' not in response:
-        error_message = 'Ошибка в ответе API, ключ homeworks не найден.'
-        raise KeyError(error_message)
+        raise KeyError('Ошибка в ответе API, ключ homeworks не найден.')
     if not isinstance(response['homeworks'], list):
-        error_message = 'Неверные данные.'
-        raise TypeError(error_message)
+        raise TypeError('Неверные данные.')
     if not response['homeworks']:
         logger.info('Словарь homeworks пуст.')
         return {}
@@ -73,8 +69,7 @@ def check_response(response):
 def parse_status(homework):
     """Извлекает статус домашней работы."""
     if 'homework_name' not in homework:
-        error_message = 'Ключ homework_name отсутствует.'
-        raise KeyError(error_message)
+        raise KeyError('Ключ homework_name отсутствует.')
     if 'status' not in homework:
         error_message = 'Ключ status отсутствует.'
         raise exceptions.StatusError()
@@ -101,8 +96,7 @@ def check_tokens():
 def main():
     """Основная логика работы бота."""
     if not check_tokens():
-        error_message = 'Отсутсвуют необходимые переменные'
-        logger.critical(error_message)
+        logger.critical('Отсутсвуют необходимые переменные')
         sys.exit()
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
